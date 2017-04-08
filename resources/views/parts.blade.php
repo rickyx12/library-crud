@@ -2,6 +2,104 @@
 
 @section('title','Rio Library');
 
+@push('scripts')
+
+	<link href='{{ URL::asset('css/custom.css') }}' rel='stylesheet'>
+	<link href='{{ URL::asset('css/bootstrap.min.css') }}' rel='stylesheet'>
+	<link href='{{ URL::asset('css/bootstrap-select.min.css') }}' rel='stylesheet'>
+	<script src='{{ URL::asset('js/jquery.min.js') }}'></script>
+	<script src='{{ URL::asset('js/bootstrap.min.js') }}'></script>
+	<script src='{{ URL::asset('js/bootstrap-select.min.js') }}'></script>
+
+@endpush
+
+@section('jqueryScript')
+
+    <script>
+    	
+    	$(document).ready(function(){
+
+			var title;
+			var author;
+			var genre;
+			var section;
+
+			$('.required').hide();
+
+			$('.selectpicker').selectpicker();
+			$.ajaxSetup({
+				headers:{
+					'X-CSRF-TOKEN':$('meta[name="csrf-token"]').attr('content')
+				}
+			});
+
+    		$('#addBookBtn').click(function() {
+
+    			title = $('#title').val();
+    			author = $('#author').val();
+    			genre = $('#genre').val();
+    			section = $('#section').val();
+
+    			if( title == '' ) {
+    				$('#titleRequired').show();
+    			}else if( author == '' ) {
+    				$('#authorRequired').show();
+    			}else if( genre == '' ) {
+    				$('#genreRequired').show();
+    			}else if( section == '' ) {
+    				$('#sectionRequired').show();
+    			}else {
+	    			var bookData = {
+	    				title:title,
+	    				author:author,
+	    				genre:genre,
+	    				section:section
+	    			};
+
+
+        			//$.post('book/add',bookData,function(data){ 
+        			$.post('{{ route('addBook') }}',bookData,function(data){ 
+        				//console.log(data);
+        				$('#addBookModal').modal('hide');
+        				$("#bookTable").load(location.href + " #bookTable");
+        				$('#title').val('');
+        				$('#author').val('');
+        				$('#genre').val('');
+        				$('#section').val('');
+        			});
+
+    			}
+    		});
+    		
+    		$('#cancelAddBook').click(function(){
+				$('#title').val('');
+				$('#author').val('');
+				$('#genre').val('');
+				$('#section').val('');        			
+    			$('.required').hide();
+    		});
+
+    		@foreach( $book as $id )
+    			$('#borrowBtn{{ $id->id }}').click(function( ){
+
+    				var bookID = $('#borrowTxt{{ $id->id }}').val();
+
+    				$.post('{{ route('updateStatus',['id' => $id->id]) }}',bookID,function(){
+    					window.location = "{{ route('homeBook') }}"
+    				})
+    			});
+    		@endforeach
+			
+    	});
+
+    </script>
+
+@endsection
+
+@section('addBookBtn');
+	<button id='addBtn' class='btn btn-default' data-toggle='modal' data-target='#addBookModal'>Add Book</button>
+@endsection
+
 @section('addBookModal')
 
 	<!--New Book Modal-->
