@@ -126,7 +126,7 @@ class BookController extends Controller
         		'searchValue' => $request->search
         	);
 
-        return view('layouts/book')->with($viewParameter);
+        return view('parts')->with($viewParameter);
         
     }
 
@@ -171,7 +171,7 @@ class BookController extends Controller
     			'searchOption' => '',
     			'searchValue' => ''
     			);
-    	return view('layouts/book')->with($viewParameter);
+    	return view('parts')->with($viewParameter);
     }
 
     /**
