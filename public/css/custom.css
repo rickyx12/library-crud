@@ -1,0 +1,24 @@
+#addBtn {
+	margin-bottom:1%;
+}
+
+.container {
+	margin-top:5%;
+}
+
+#leftSide {
+	margin-top:5%;
+}
+
+#searchBox {
+	margin-bottom:10%;
+}
+
+#searchBtn {
+	margin-top:7%;
+}
+
+.required {
+	color:red;
+	font-size:90%;
+}
