@@ -10,7 +10,8 @@ DEMO: [https://rio-library.herokuapp.com/public/book](https://rio-library.heroku
 * `cd projectname`  
 * `composer install`  
 * Create database and inform .env  
-* `php artisan migrate --seed`
+* `php artisan migrate --seed`  
+* proceed to `http://localhost/rio/public/book`
 
 
 ![alt tag](https://i.imgur.com/WUgBx21.png)
