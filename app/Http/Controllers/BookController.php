@@ -89,6 +89,7 @@ class BookController extends Controller
         	$books = DB::table('books')
         		->where($request->searchOption,'like',$request->search.'%')
         		->where('status','=','')
+                ->orderBy('title','ASC')
         		->paginate(5);
 
         	$this->_search = $request->search;	
