@@ -23,7 +23,7 @@
                 @yield('searchForm')
     		</div>
 
-    		<div class='col-md-8'>
+    		<div class='col-md-10'>
                 <div class='col-md-7'>
                     @yield('filterForm')
                 </div>                
@@ -41,9 +41,7 @@
                     @yield('noResult')
     		</div>
 
-    		<div class='col-md-2'>
-			    			
-    		</div>
+
 
     		@yield('addBookModal')
 

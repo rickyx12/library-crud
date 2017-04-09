@@ -8,6 +8,7 @@
 	<link href='{{ URL::asset('css/bootstrap.min.css') }}' rel='stylesheet'>
 	<link href='{{ URL::asset('css/bootstrap-select.min.css') }}' rel='stylesheet'>
 	<link href='{{ URL::asset('css/sweetalert.css') }}' rel='stylesheet'>
+	<link href='{{ URL::asset('css/font-awesome/css/font-awesome.min.css') }}' rel='stylesheet'>
 	<script src='{{ URL::asset('js/jquery.min.js') }}'></script>
 	<script src='{{ URL::asset('js/bootstrap.min.js') }}'></script>
 	<script src='{{ URL::asset('js/bootstrap-select.min.js') }}'></script>
@@ -260,6 +261,7 @@
 				<td>Author</td>
 				<td>Genre</td>
 				<td>Section</td>
+				<td><h6>Available</h6></td>
 				<td></td>
 				<td></td>
 			</tr>
@@ -271,6 +273,13 @@
 					<td>{{ $b->author }}</td>
 					<td>{{ $b->genre }}</td>
 					<td>{{ $b->section }}</td>
+					<td align='center'>
+						@if( $b->status != 'borrowed' ) 
+							<i class="fa fa-check" aria-hidden="true"></i>
+						@else
+							<i class="fa fa-times" aria-hidden="true"></i>	
+						@endif
+					</td>
 					<td>
 						@if( $b->status != 'borrowed' )
 							<button id='borrowBtn{{ $b->id }}' class='btn btn-success btn-sm'>Borrow</button>
