@@ -13,4 +13,4 @@ DEMO: [https://rio-library.herokuapp.com/public/book](https://rio-library.heroku
 * `php artisan migrate --seed`
 
 
-![alt tag](https://preview.ibb.co/bURbgQ/rio_Library.png)
+![alt tag](https://i.imgur.com/WUgBx21.png)
