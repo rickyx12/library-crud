@@ -23,7 +23,7 @@ class BookTableSeeder extends Seeder
         ]);    
         */
 
-        factory(App\Book::class,5)->create();
+        factory(App\Book::class,20)->create();
 
     }
 }
