@@ -83,39 +83,21 @@ class BookController extends Controller
     public function search(Request $request) 
     {
 
-    	if( $request->searchOption == 'all' ) {
-	    	
-	    	if( $request->search != '' || $request->search != null ) 
-	    	{
-	        	$books = DB::table('books')
-	        		->where('status','=','')
-	        		->where('title','like',$request->search.'%')
-	        		->orWhere('author','like',$request->search.'%')
-	        		->orWhere('section','like',$request->search.'%')
-	        		->paginate(5);
-	        }else {
-	        	$books = DB::table('books')
-	        			->paginate(5);
-	        }    		
+    	if( $request->search != '' || $request->search != null ) 
+    	{
 
-    	}else {
-	    	
-	    	if( $request->search != '' || $request->search != null ) 
-	    	{
+        	$books = DB::table('books')
+        		->where($request->searchOption,'like',$request->search.'%')
+        		->where('status','=','')
+        		->paginate(5);
 
-	        	$books = DB::table('books')
-	        		->where($request->searchOption,'like',$request->search.'%')
-	        		->where('status','=','')
-	        		->paginate(5);
-
-	        	$this->_search = $request->search;	
-	        
-	        }else {
-	        	$books = DB::table('books')
-	        			->paginate(5);
-	        }
+        	$this->_search = $request->search;	
+        
+        }else {
+        	$books = DB::table('books')
+        			->paginate(5);
         }
-
+        
         $viewParameter = array(
         		'book' => $books,
         		'filterHeader' => $this->_filter,
@@ -214,6 +196,7 @@ class BookController extends Controller
      */
     public function destroy($id)
     {
-        //
+        $book = book::find($id);
+        $book->delete();
     }
 }
