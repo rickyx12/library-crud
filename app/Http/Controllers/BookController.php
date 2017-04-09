@@ -94,8 +94,7 @@ class BookController extends Controller
         	$this->_search = $request->search;	
         
         }else {
-        	$books = DB::table('books')
-        			->paginate(5);
+        	return redirect()->route('homeBook');
         }
         
         $viewParameter = array(
@@ -122,7 +121,7 @@ class BookController extends Controller
     	if( $request->filterOption == 'all' ) 
     	{
     		
-    		$book = book::paginate(5);
+    		return redirect()->route('homeBook');
     
     	}else {
 
