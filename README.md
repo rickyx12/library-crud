@@ -6,7 +6,11 @@ Library System.
 DEMO: [https://rio-library.herokuapp.com/public/book](https://rio-library.herokuapp.com/public/book)    
 
 #### INSTALLATION  
-* `git clone https://rio-library.herokuapp.com/public/book projectname`
+* `git clone https://github.com/rickyx12/library-crud.git projectname`  
+* `cd projectname`  
+* `composer install`  
+* Create database and inform .env  
+* `php artisan migrate --seed`
 
 
 ![alt tag](https://preview.ibb.co/bURbgQ/rio_Library.png)
