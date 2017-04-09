@@ -61,13 +61,12 @@
 
         			//$.post('book/add',bookData,function(data){ 
         			$.post('{{ route('addBook') }}',bookData,function(data){ 
-        				//console.log(data);
         				$('#addBookModal').modal('hide');
-        				$("#bookTable").load(location.href + " #bookTable");
         				$('#title').val('');
         				$('#author').val('');
         				$('#genre').val('');
         				$('#section').val('');
+        				location.reload();
         			});
 
     			}
@@ -267,7 +266,7 @@
 		</thead>
 		<tbody>
 			@foreach( $book as $b )
-				<tr>
+				<tr class='bookData'>
 					<td>{{ $b->title }}</td>
 					<td>{{ $b->author }}</td>
 					<td>{{ $b->genre }}</td>
