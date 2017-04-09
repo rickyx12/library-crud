@@ -7,9 +7,11 @@
 	<link href='{{ URL::asset('css/custom.css') }}' rel='stylesheet'>
 	<link href='{{ URL::asset('css/bootstrap.min.css') }}' rel='stylesheet'>
 	<link href='{{ URL::asset('css/bootstrap-select.min.css') }}' rel='stylesheet'>
+	<link href='{{ URL::asset('css/sweetalert.css') }}' rel='stylesheet'>
 	<script src='{{ URL::asset('js/jquery.min.js') }}'></script>
 	<script src='{{ URL::asset('js/bootstrap.min.js') }}'></script>
 	<script src='{{ URL::asset('js/bootstrap-select.min.js') }}'></script>
+	<script src='{{ URL::asset('js/sweetalert.min.js') }}'></script>
 
 @endpush
 
@@ -25,7 +27,7 @@
 			var section;
 
 			$('.required').hide();
-
+			
 			$('.selectpicker').selectpicker();
 			$.ajaxSetup({
 				headers:{
@@ -79,15 +81,60 @@
     			$('.required').hide();
     		});
 
+    		//if there is no result
+    		@if($book == "" )
+    			$('#noResult').show();
+    		@endif
+
     		@foreach( $book as $id )
+
+    			var bookID = '{{ $id->id }}';
+
+    			$("#noResult").hide();
+
     			$('#borrowBtn{{ $id->id }}').click(function( ){
 
-    				var bookID = $('#borrowTxt{{ $id->id }}').val();
-
     				$.post('{{ route('updateStatus',['id' => $id->id]) }}',bookID,function(){
-    					window.location = "{{ route('homeBook') }}"
+    					//window.location = "{{ route('homeBook') }}"
+    					location.reload();
     				})
     			});
+
+
+
+    			$('#delBtn{{ $id->id }}').click(function(){
+    				if( '{{ $id->status }}' == 'borrowed' ) 
+    				{
+    					swal("Sorry", "The book should be return first before you can delete it.", "error");
+    				}else 
+    				{
+	    				swal({
+	    					title:'Delete?',
+	    					text:' "{{ $id->title }}" - {{ $id->author }}',
+	    					type:'warning',
+	    					showCancelButton:true,
+	    					confirmButtonColor:"#DD6B55",
+	    					confirmButtonText: "Yes, delete it!",
+	    					closeOnConfirm: false,
+	    					showLoaderOnConfirm: true,
+	    				},
+						function() { 
+							setTimeout(function(){   
+								$.post('{{ route('delete',['id' => $id->id]) }}',bookID,function(){
+									swal({
+										title:'Deleted!',
+										text:'{{ $id->title }} - {{ $id->author }} has been delete.',
+										type:'success'
+									},function(){
+										location.reload();	
+									});
+								});
+							},2500);
+						});
+    				}
+    			});
+	    		
+
     		@endforeach
 			
     	});
@@ -97,7 +144,7 @@
 @endsection
 
 @section('addBookBtn');
-	<button id='addBtn' class='btn btn-default' data-toggle='modal' data-target='#addBookModal'>Add Book</button>
+	<button id='addBtn' class='btn btn-info' data-toggle='modal' data-target='#addBookModal'>Add Book</button>
 @endsection
 
 @section('addBookModal')
@@ -164,12 +211,9 @@
 
 	{!! Form::open(['route' => 'searchText','method' => 'GET']) !!}
 		 {{ csrf_field() }}
-		<input type='text' id='searchBox' name='search' class='form-control' placeholder='{{ $searchHeader }}' autocomplete='off'>
+		<input type='text' id='searchBox' name='search' class='form-control' placeholder='{{ $searchHeader }}' autocomplete='off'>   		
 		<div class='row'>
-			{{ Form::radio('searchOption', 'all',true,['checked' => true]) }} All
-		</div>	    		
-		<div class='row'>
-			{{ Form::radio('searchOption', 'title') }} Title
+			{{ Form::radio('searchOption', 'title',true,['checked' => true]) }} Title
 		</div>
 		<div class='row'>
 			{{ Form::radio('searchOption', 'author') }} Author
@@ -218,6 +262,7 @@
 				<td>Genre</td>
 				<td>Section</td>
 				<td></td>
+				<td></td>
 			</tr>
 		</thead>
 		<tbody>
@@ -234,7 +279,9 @@
 							<button id='borrowBtn{{ $b->id }}' class='btn btn-danger btn-sm'>Return</button>
 						@endif
 					</td>
-					<input type='hidden' id='borrowTxt{{ $b->id }}' value='{{ $b->id }}'>
+					<td>
+						<button id='delBtn{{ $b->id }}' class='btn btn-default btn-sm'>Delete</button>
+					</td>
 				</tr>
 			@endforeach
 		</tbody>
@@ -246,7 +293,7 @@
 @section('paginator')
 
 	{{-- 
-		although i can put the parameter directly to the append() of links() i choose to enclosed within php directive for better readability. 
+		although i can put the parameter directly to the appends() of links() i choose to enclosed within php directive for better readability. 
 	--}}
 	@php
 		$parameters = array(
@@ -259,3 +306,7 @@
 	{{ $book->appends($parameters)->links() }}
 
 @endsection
+
+@section("noResult")
+	<div id="noResult" class="alert alert-danger" role="alert">No Matching Results Found.</div>
+@endsection 
