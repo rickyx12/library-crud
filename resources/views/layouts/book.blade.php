@@ -10,7 +10,6 @@
         @yield('jqueryScript')
     </head>
     <body>
-
     	<nav class='navbar navbar-default navbar-fixed-top'>
     		<div class='container-fluid'>
     			<div class='navbar-header'>
@@ -25,10 +24,10 @@
     		</div>
 
     		<div class='col-md-8'>
+                <div class='col-md-7'>
+                    @yield('filterForm')
+                </div>                
     			<div class='text-right'>
-    				<div class='col-md-1'>
-                        @yield('filterForm')
-    				</div>
     				@yield('addBookBtn')
     			</div>
     			<div class='panel panel-default text-center'>
@@ -39,6 +38,7 @@
 			    <div class='fluid text-right'>
                     @yield('paginator')
 				</div>
+                    @yield('noResult')
     		</div>
 
     		<div class='col-md-2'>
