@@ -20,7 +20,8 @@ class BookController extends Controller
      */
     public function index()
     {
-    	$book = book::paginate(5);
+    	$book = book::orderBy('title','ASC')
+                    ->paginate(5);
 
     	$viewParameter = array(
     			'book' => $book,
