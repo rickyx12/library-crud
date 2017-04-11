@@ -11,7 +11,7 @@ DEMO: [https://rio-library.herokuapp.com/public/book](https://rio-library.heroku
 * `composer install`  
 * Create database and inform .env  
 * `php artisan migrate --seed`  
-* proceed to `http://localhost/rio/public/book`
+* proceed to `http://localhost/projectname/public/book`
 
 
 ![alt tag](https://i.imgur.com/WUgBx21.png)
