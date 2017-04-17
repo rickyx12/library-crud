@@ -3,6 +3,7 @@
 Laravel 5.4.  
 Basic CRUD.  
 Library System.  
+AJAX  
 DEMO: [https://rio-library.herokuapp.com/public/book](https://rio-library.herokuapp.com/public/book)    
 
 #### INSTALLATION  
