@@ -19,25 +19,14 @@
 @section('jqueryScript')
 
     <script>
-    	
-    	$(document).ready(function(){
+   
+	    //global var because default value will be change by filter() and will be use by search()
+	    var filterOptionFormatter = 'anything';
 
-			var title;
-			var author;
-			var genre;
-			var section;
+	    function addBook() {
 
-			$('.required').hide();
-			
-			$('.selectpicker').selectpicker();
-			$.ajaxSetup({
-				headers:{
-					'X-CSRF-TOKEN':$('meta[name="csrf-token"]').attr('content')
-				}
-			});
-
-    		$('#addBookBtn').click(function() {
-
+    		//$('#addBookBtn').click(function() {
+    		$("body").on('click','#addBookBtn',function() {
     			title = $('#title').val();
     			author = $('#author').val();
     			genre = $('#genre').val();
@@ -52,7 +41,7 @@
     			}else if( section == '' ) {
     				$('#sectionRequired').show();
     			}else {
-	    			var bookData = {
+	    			var booksData = {
 	    				title:title,
 	    				author:author,
 	    				genre:genre,
@@ -61,15 +50,17 @@
 
 
         			//$.post('book/add',bookData,function(data){ 
-        			$.post('{{ route('addBook') }}',bookData,function(data){ 
+        			$.post('{{ route('addBook') }}',booksData,function(data) { 
         				$('#addBookModal').modal('hide');
-        				$('#title').val('');
+			    		var url = '{{ url("book/all") }}?page=1';
+			    		bookData(url,pageActive,'all');
+			    		swal('Book Added',$('#title').val()+' - '+$('#author').val()+' is now added in the catalogue. You will be now redirected to the first page of all books.','success');
+			    		$('#title').val('');
         				$('#author').val('');
         				$('#genre').val('');
         				$('#section').val('');
-        				location.reload();
+       				
         			});
-
     			}
     		});
     		
@@ -81,61 +72,303 @@
     			$('.required').hide();
     		});
 
-    		//if there is no result
-    		@if($book == "" )
-    			$('#noResult').show();
-    		@endif
+    		console.log($('.allBook').attr('href'));
 
-    		@foreach( $book as $id )
+	    }
 
-    			var bookID = '{{ $id->id }}';
+	    function deleteBook(id,title,author,status,page,url) {
 
-    			$("#noResult").hide();
+			$('body').on('click','#delBtn'+id,function() {
+		
+				if( status == 'borrowed' ) {
+					swal("Sorry", "The book should be return first before you can delete it.", "error");
+				}else 
+				{
+    				swal({
+    					title:'Delete?',
+    					text:' "'+title+'" - '+author+'',
+    					type:'warning',
+    					showCancelButton:true,
+    					confirmButtonColor:"#DD6B55",
+    					confirmButtonText: "Yes, delete it!",
+    					closeOnConfirm: false,
+    					showLoaderOnConfirm: true,
+    				},
+					function() { 
+						setTimeout(function(){   
+							$.post('{{ route('delete') }}',{ id:id },function(){
+								swal({
+									title:'Deleted!',
+									text:' '+title+' - '+author+' has been deleted.',
+									type:'success'
+								},function(){
+									bookData(url,page,'all');	
+								});
+							});
+						},2500);
+					});
+				}
+			});
+	    }
 
-    			$('#borrowBtn{{ $id->id }}').click(function( ){
 
-    				$.post('{{ route('updateStatus',['id' => $id->id]) }}',bookID,function(){
-    					//window.location = "{{ route('homeBook') }}"
-    					location.reload();
-    				})
-    			});
+	    function updateBook(id,title,author,status,page,pageType) {
 
+			$('body').on('click','#borrowBtn'+id,function() {	
+				
+				//$.post('{{ route('updateStatus') }}',{ id:id, status:status },function() {
 
-
-    			$('#delBtn{{ $id->id }}').click(function(){
-    				if( '{{ $id->status }}' == 'borrowed' ) 
-    				{
-    					swal("Sorry", "The book should be return first before you can delete it.", "error");
-    				}else 
-    				{
+					if( status == 'borrowed' ) 
+					{
 	    				swal({
-	    					title:'Delete?',
-	    					text:' "{{ $id->title }}" - {{ $id->author }}',
+	    					title:'Return?',
+	    					text:' "'+title+'" - '+author+' will be tag as Return',
 	    					type:'warning',
 	    					showCancelButton:true,
 	    					confirmButtonColor:"#DD6B55",
-	    					confirmButtonText: "Yes, delete it!",
+	    					confirmButtonText: "Yes",
 	    					closeOnConfirm: false,
 	    					showLoaderOnConfirm: true,
 	    				},
 						function() { 
 							setTimeout(function(){   
-								$.post('{{ route('delete',['id' => $id->id]) }}',bookID,function(){
+								$.post('{{ route('updateStatus') }}',{ id:id, status:status },function() {
 									swal({
-										title:'Deleted!',
-										text:'{{ $id->title }} - {{ $id->author }} has been delete.',
+										title:'Return!',
+										text:' '+title+' - '+author+' has been returned.',
 										type:'success'
 									},function(){
-										location.reload();	
+										showBook(page);
 									});
 								});
-							},2500);
+							},2000);
 						});
-    				}
-    			});
-	    		
+					}else 
+					{
+	    				swal({
+	    					title:'Borrow?',
+	    					text:' "'+title+'" - '+author+' will be tag as borrowed',
+	    					type:'warning',
+	    					showCancelButton:true,
+	    					confirmButtonColor:"#DD6B55",
+	    					confirmButtonText: "Yes",
+	    					closeOnConfirm: false,
+	    					showLoaderOnConfirm: true,
+	    				},
+						function() { 
+							setTimeout(function(){   
+								$.post('{{ route('updateStatus') }}',{ id:id, status:status },function() {
+									swal({
+										title:'Borrowed!',
+										text:' '+title+' - '+author+' is now tag as borrowed.',
+										type:'success'
+									},function() {
+										
+										if( pageType == 'all' ) {
+											
+											var url = '{{ url("book/all") }}?page=';
+											bookData(url+page,page,'all');
 
-    		@endforeach
+										}else if( pageType == 'filter' ) {
+
+											var filterOption = $('#filterOption').val();
+											var url = '{{ url("book/filter/page") }}/'+filterOption+'/'+page+'?page='+page;
+											bookData(url,page,'filter');											
+										
+										}else if( pageType == 'search' ) {
+
+								    		var searchFormatter = '';
+								    		var search = $('#searchBox').val();
+											var searchOption = $('input[class=searchOption]:checked').map(function(){
+																	return this.value;
+																}).get();
+
+											/**
+											* if no value in search textbox then make value as "all".
+											* in the backend "all" means show all
+											*/
+											if( search == '' ) {
+												searchFormatter = 'all';
+											}else {
+												searchFormatter = search;
+											}
+
+											var url = '{{ url("book/search") }}/'+filterOptionFormatter+'/'+searchOption+'/'+searchFormatter+'?page='+page;
+								    		bookData(url,page,'search');
+
+										}else { 
+											console.log('error bes!');
+										}																				
+									});
+								});
+							},2000);
+						});
+					}
+				//})
+			});
+	    }
+
+
+
+		//show search matches result
+	    function search(page) {
+	    	$("body").on('click','#searchBtn',function() {
+
+	    		var searchFormatter = '';
+	    		var search = $('#searchBox').val();
+	    		var filterOption = $('#filterOption').val();
+				var searchOption = $('input[class=searchOption]:checked').map(function(){
+										return this.value;
+									}).get();
+				/**
+				* if no value in search textbox then make value as "all".
+				* in the backend "all" means show all
+				*/
+				if( search == '' ) {
+					searchFormatter = 'all';
+				}else {
+					searchFormatter = search;
+				}
+
+				var url = '{{ url("book/search") }}/'+filterOptionFormatter+'/'+searchOption+'/'+searchFormatter+'?page=';
+				bookData(url+page,page,'search');
+	    	});
+
+	    	//paginator pages
+	    	$("body").on('click','.searchBook',function(e) {
+	    		e.preventDefault();
+	    		var searchFormatter = '';
+	    		var search = $('#searchBox').val();
+				var searchOption = $('input[class=searchOption]:checked').map(function(){
+										return this.value;
+									}).get();
+	    		var clickedPage = $(this).text();
+
+				/**
+				* if no value in search textbox then make value as "all".
+				* in the backend "all" means show all
+				*/
+				if( search == '' ) {
+					searchFormatter = 'all';
+				}else {
+					searchFormatter = search;
+				}
+
+				//var url = '{{ url("book/search") }}/'+filterOptionFormatter+'/'+searchOption+'/'+searchFormatter+'?page='+clickedPage;
+	    		var url = $(this).attr('href');
+	    		bookData(url,clickedPage,'search');
+	    		console.log(filterOptionFormatter);
+	    	});
+
+	    }
+
+
+
+	    //show filtered book
+	    function filter(page) {
+			$("body").on('change','#filterOption',function(e) {
+				
+				//local variable because value is available only on change event.
+				var filterOption = $(this).val(); 
+				filterOptionFormatter = filterOption;
+				var url = '{{ url("book/filter/page") }}/'+filterOption+'?page=';
+				bookData(url+page,page,'filter');		
+			});
+
+			//paginator pages
+			$("body").on('click','.filteredBook',function(e){
+				e.preventDefault();
+				//value came from the previous onchange event.
+				var filterOption = $('#filterOption').val();
+				var clickedPage = $(this).text();
+				//var url = '{{ url("book/filter/page") }}/'+filterOption+'/'+clickedPage+'?page='+clickedPage;
+				var url = $(this).attr('href');
+				bookData(url,clickedPage,'filter');
+			});
+
+	    }
+
+	    //show all book
+    	function showBook(page) {
+    		var url = '{{ url("book/all") }}?page=';
+    		bookData(url+page,page,'all');
+    		
+    		$("body").on('click','.allBook',function(e) {
+    			e.preventDefault();
+    			clickedPage = $(this).text();
+    			bookData(url+clickedPage,clickedPage,'all');
+    		});
+
+    	}
+
+    	//json parser to output in the table by injecting the JSON 
+    	function bookData(json,page,pageType) {
+    		$.getJSON(json,'',function(result) {
+    			var tableData = '';
+
+    			$.each(result['books']['data'],function(i,field) {		
+    				tableData += '<tr>';
+    				tableData += '<td>'+field.title+'</td>';
+    				tableData += '<td>'+field.author+'</td>';
+    				tableData += '<td>'+field.genre+'</td>';
+    				tableData += '<td>'+field.section+'</td>';
+    				if( field.status != 'borrowed' ) {
+    					tableData += '<td><i class="fa fa-check"></i></td>';
+    					tableData += '<td><button id="borrowBtn'+field.id+'" class="btn btn-success btn-sm">Borrow</button></td>';
+    				}else {
+    					tableData += '<td><i class="fa fa-times"></i></td>';
+    					tableData += '<td><button id="borrowBtn'+field.id+'" class="btn btn-danger btn-sm">Return</button></td>';
+    				}
+    				tableData += '<td><button id="delBtn'+field.id+'" class="btn btn-default btn-sm">Delete</button></td>';
+    				tableData += '</tr>';
+
+    				updateBook(field.id,field.title,field.author,field.status,page,pageType);
+    				deleteBook(field.id,field.title,field.author,field.status,page,json);
+
+    			});
+
+    			$('tbody').html(tableData);
+				$('#pagination').html(result['pagination']);    	
+
+				//show an alert box if there is no books to show.
+				if( result['books']['data'] == '' ) {
+					$('#noResult').show();
+				}else {
+					$('#noResult').hide();
+				}
+
+    		});
+    	}
+
+    	$(document).ready(function(){
+
+			var title;
+			var author;
+			var genre;
+			var section;
+
+			$('#noResult').hide();
+			$('.required').hide();
+			
+			pageActive = $('.active').text();
+
+			//will run upon onchange of #filterOption
+			filter(pageActive);
+
+			//will run upon onclick of #searchBtn
+			search(pageActive);
+			
+			//run onload.
+			showBook(pageActive);
+
+			addBook();
+
+			$('.selectpicker').selectpicker();
+			$.ajaxSetup({
+				headers:{
+					'X-CSRF-TOKEN':$('meta[name="csrf-token"]').attr('content')
+				}
+			});
 			
     	});
 
@@ -143,7 +376,7 @@
 
 @endsection
 
-@section('addBookBtn');
+@section('addBookBtn')
 	<button id='addBtn' class='btn btn-info' data-toggle='modal' data-target='#addBookModal'>Add Book</button>
 @endsection
 
@@ -209,31 +442,31 @@
 
 @section('searchForm')
 
-	{!! Form::open(['route' => 'searchText','method' => 'GET']) !!}
-		 {{ csrf_field() }}
-		<input type='text' id='searchBox' name='search' class='form-control' placeholder='{{ $searchHeader }}' autocomplete='off'>   		
+	{{-- Form::open(['route' => 'searchText','method' => 'GET']) --}}
+		 {{-- csrf_field() --}}
+		<input type='text' id='searchBox' name='search' class='form-control' placeholder='{{ $searchHeader  }}' autocomplete='off'>   		
 		<div class='row'>
-			{{ Form::radio('searchOption', 'title',true,['checked' => true]) }} Title
+			<input type='radio' value='title' name='search' class='searchOption' checked="true"> Title
 		</div>
 		<div class='row'>
-			{{ Form::radio('searchOption', 'author') }} Author
+			<input type='radio' value='author' name='search' class='searchOption'> Author
 		</div>
 		<div class='row'>
-			{{ Form::radio('searchOption', 'section') }} Section
+			<input type='radio' value='section' name='search' class='searchOption'> Section
 		</div>
 		<div id='searchBtn'>
 			<button id='searchBtn' class='btn btn-info btn-block' type='submit'>Search</button>
 		</div>
-	{!! Form::close() !!}
+	{{-- Form::close() --}}
 
 @endsection
 
 
 @section('filterForm')
 
-	{!! Form::open(['route' => 'filter','method' => 'GET']) !!}
-		{{ csrf_field() }}
-		<select name='filterOption' class='selectpicker show-menu-arrow' title='{{ $filterHeader }}' onchange='this.form.submit();'>
+	{{-- Form::open(['route' => 'filter','method' => 'POST']) --}}
+		{{-- csrf_field() --}}
+		<select id='filterOption' name='filterOption' class='selectpicker show-menu-arrow' title='{{ $filterHeader }}'>
 			<optgroup label='Genre'>
 				<option value='genre-Horror'>Horror</option>
 				<option value='genre-Romance'>Romance</option>
@@ -246,9 +479,9 @@
 				<option value='section-Childrens Section'>Childrens Section</option>
 				<option value='section-Fiction'>Fiction</option>
 			</optgroup>
-			<option value='all'>Show All</option>
+			<option value='anything'>Show All</option>
 		</select>
-	{!! Form::close() !!}
+	{{-- Form::close() --}}
 
 @endsection
 
@@ -267,6 +500,8 @@
 			</tr>
 		</thead>
 		<tbody>
+
+			{{--
 			@foreach( $book as $b )
 				<tr class='bookData'>
 					<td>{{ $b->title }}</td>
@@ -292,6 +527,7 @@
 					</td>
 				</tr>
 			@endforeach
+			--}}
 		</tbody>
 	</table>
 
@@ -299,20 +535,7 @@
 
 
 @section('paginator')
-
-	{{-- 
-		although i can put the parameter directly to the appends() of links() i choose to enclosed within php directive for better readability. 
-	--}}
-	@php
-		$parameters = array(
-				'filterOption' => $filterOption,
-				$filterOption => $filterValue,
-				'search' => $searchValue,
-				'searchOption' => $searchOption
-			);
-	@endphp
-	{{ $book->appends($parameters)->links() }}
-
+	<a id='pagination'> </a>
 @endsection
 
 @section("noResult")

@@ -20,13 +20,10 @@ class BookController extends Controller
      */
     public function index()
     {
-    	$book = book::orderBy('title','ASC')
-                    ->paginate(5);
 
     	$viewParameter = array(
-    			'book' => $book,
     			'filterHeader' => $this->_filter,
-    			'filterOption' => '',
+    			'filterOption' => 'all',
     			'filterValue' => '',
     			'searchHeader' => $this->_search,
     			'searchOption' => '',
@@ -35,6 +32,22 @@ class BookController extends Controller
 
         return view('parts')->with($viewParameter);
     }
+
+
+    //will call upon body onload
+    public function all() {
+
+        $books = book::orderBy('title','ASC')
+                ->paginate(5);
+
+        $parameters = array(
+                'books' => $books,
+                'pagination' => (string) $books->links()
+            );
+
+        return response()->json($parameters);
+    }
+
 
     /**
      * Show the form for creating a new resource.
@@ -81,60 +94,95 @@ class BookController extends Controller
     /**
     *for searching
     */
-    public function search(Request $request) 
+    public function search($filterOption,$searchOption,$search = '') 
     {
 
-    	if( $request->search != '' || $request->search != null ) 
-    	{
-
-        	$books = DB::table('books')
-        		->where($request->searchOption,'like',$request->search.'%')
+    	if( $search != 'all' ) 
+    	{  
+            if( $filterOption == 'anything' ) 
+            {
+               $books = DB::table('books')
+                ->where($searchOption,'like',$search.'%')
+                ->where('status','=','')
+                ->orderBy('title','ASC')
+                ->paginate(5);
+            }else 
+            {
+               $filter = preg_split ("/\-/",$filterOption); 
+        	   $books = DB::table('books')
+        		->where($searchOption,'like',$search.'%')
+                ->where($filter[0],$filter[1])
         		->where('status','=','')
                 ->orderBy('title','ASC')
         		->paginate(5);
+            }
 
-        	$this->_search = $request->search;	
+        	$this->_search = $search;	
+
+             $viewParameter = array(
+                'books' => $books,
+                'filterHeader' => $this->_filter,
+                'filterOption' => '',
+                'filterValue' => '',
+                'searchHeader' => $this->_search,
+                'searchOption' => $searchOption,
+                'searchValue' => $search,
+                'pagination' => (string) $books->links()
+            );
+
+            //return view('parts')->with($viewParameter);
+            return response()->json($viewParameter);            
         
         }else {
-        	return redirect()->route('homeBook');
-        }
-        
-        $viewParameter = array(
-        		'book' => $books,
-        		'filterHeader' => $this->_filter,
-        		'filterOption' => '',
-        		'filterValue' => '',
-        		'searchHeader' => $this->_search,
-        		'searchOption' => $request->searchOption,
-        		'searchValue' => $request->search
-        	);
+            if( $filterOption != 'anything' ) 
+            {
+                $filter = preg_split ("/\-/",$filterOption);
+                $books = book::where($filter[0],$filter[1])
+                            ->paginate(5);
+            }else 
+            {
+                $books = book::paginate(5);
+            }  
 
-        return view('parts')->with($viewParameter);
-        
+
+            $parameters = array(
+                'books' => $books,
+                'pagination' => (string) $books->links()
+            );
+
+
+            return response()->json($parameters);
+        }               
     }
 
     /**
-    *for filter
+    * for filter route
     */
-    public function filter(Request $request) 
+    public function filter($filterOption,$page = '') 
     {
 
-
-    	if( $request->filterOption == 'all' ) 
+    	if( $filterOption == 'anything' ) 
     	{
-    		
-    		return redirect()->route('homeBook');
-    
+            $books = book::orderBy('title','ASC')
+                        ->paginate(5);
+
+            $parameters = array(
+                'books' => $books,
+                'pagination' => (string) $books->links()
+            );
+
+
+    		return response()->json($parameters);
     	}else {
 
     	/**
     	* SAMPLE
-    	* assume $request: genre-Horror
+    	* assume $filterOption: genre-Horror
     	* $filter[0] = genre
     	* $filter[1] = Horror
 		*/ 
-
-    	$filter = preg_split ("/\-/",$request->filterOption);
+        
+    	$filter = preg_split ("/\-/",$filterOption);
 
 		$book = book::where($filter[0],$filter[1]) 
 				->where('status','')
@@ -143,18 +191,20 @@ class BookController extends Controller
 
 		$this->_filter = $filter[1];
 
-    	}
 
     	$viewParameter = array(
-    			'book' => $book,
+    			'books' => $book,
     			'filterHeader' => $this->_filter,
     			'filterOption' => 'filterOption',
-    			'filterValue' => $request->filterOption,
+    			'filterValue' => $filterOption,
     			'searchHeader' => $this->_search,
     			'searchOption' => '',
-    			'searchValue' => ''
+    			'searchValue' => '',
+                'pagination' => (string) $book->links()
     			);
-    	return view('parts')->with($viewParameter);
+            return response()->json($viewParameter);
+        }
+        
     }
 
     /**
@@ -175,12 +225,12 @@ class BookController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, $id)
+    public function update(Request $request)
     {
     	
-        $book = book::find($id);
+        $book = book::find($request->id);
 
-        if( $book->status != 'borrowed' ) {
+        if( $request->status != 'borrowed' ) {
         	$book->status = 'borrowed';
     	}else {
     		$book->status = '';
@@ -195,9 +245,9 @@ class BookController extends Controller
      * @param  int  $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy($id)
+    public function destroy(Request $request)
     {
-        $book = book::find($id);
+        $book = book::find($request->id);
         $book->delete();
     }
 }

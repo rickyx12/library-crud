@@ -16,9 +16,9 @@ Route::get('/', function () {
 });
 
 Route::get('book','BookController@index')->name('homeBook');
+Route::get('book/all','BookController@all')->name('all');
 Route::post('book/add','BookController@store')->name('addBook');
-Route::post('book/update/{id}','BookController@update')->name('updateStatus');
-Route::post('book/delete/{id}','BookController@destroy')->name('delete');
-Route::get('book/search','BookController@search')->name('searchText');
-Route::get('book/filter','BookController@filter')->name('filter');
-
+Route::post('book/update','BookController@update')->name('updateStatus');
+Route::post('book/delete','BookController@destroy')->name('delete');
+Route::get('book/search/{filterOption}/{searchOption}/{search?}','BookController@search')->name('searchBook');
+Route::get('book/filter/page/{filterOption}/{page?}','BookController@filter');

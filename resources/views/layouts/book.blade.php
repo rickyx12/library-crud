@@ -42,7 +42,6 @@
     		</div>
 
 
-
     		@yield('addBookModal')
 
     	</div>
